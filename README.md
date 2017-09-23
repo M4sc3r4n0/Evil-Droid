@@ -1,1 +1,39 @@
-# Evil-Droid
+## Evil-Droid Framework . version 0.1 
+    Author: Mascerano Bachir [ dev-labs ]
+
+## Legal Disclamer:
+    The author does not hold any responsibility for the bad use of this tool,
+    remember this is only for educational purpose.
+
+## Description:
+    Evil-Droid is a framework that create & generate & embed apk payload to penetrate androis platforms
+ 
+## Screenshot:
+![pic1](https://i.imgur.com/wCr6HYq.png)
+
+![pic2](https://i.imgur.com/undefined.png)
+
+<br /><br />
+
+## Dependencies :
+    1 - metasploit-framework
+	2 - xterm
+	3 - Zenity
+	4 - Aapt
+	5 - Apktool
+
+## Download/Config/Usage:
+    1? - Download the tool from github
+         git clone https://github.com/M4sc3r4n0/Evil-Droid.git
+
+    2? - Set setup script execution permission
+         cd Evil-Droid
+         chmod +x evil-droid
+
+
+    4?- Run Evil-Droid Framework :
+       ./evil-droid
+         see options bellow	   
+      
+
+## video tutorial: 
