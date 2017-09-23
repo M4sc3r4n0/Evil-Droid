@@ -6,7 +6,7 @@
     remember this is only for educational purpose.
 
 ## Description:
-    Evil-Droid is a framework that create & generate & embed apk payload to penetrate androis platforms
+    Evil-Droid is a framework that create & generate & embed apk payload to penetrate android platforms
  
 ## Screenshot:
 ![pic1](https://i.imgur.com/wCr6HYq.png)
