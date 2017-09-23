@@ -26,7 +26,7 @@
     1? - Download the tool from github
          git clone https://github.com/M4sc3r4n0/Evil-Droid.git
 
-    2? - Set setup script execution permission
+    2? - Set script execution permission
          cd Evil-Droid
          chmod +x evil-droid
 
@@ -37,3 +37,4 @@
       
 
 ## video tutorial: 
+https://www.youtube.com/watch?v=8u-NHeTdPRE&feature=share
