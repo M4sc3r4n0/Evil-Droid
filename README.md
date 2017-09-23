@@ -11,7 +11,7 @@
 ## Screenshot:
 ![pic1](https://i.imgur.com/wCr6HYq.png)
 
-![pic2](https://i.imgur.com/undefined.png)
+![pic2](https://image.ibb.co/jqsHYk/tag.jpg)
 
 <br /><br />
 
