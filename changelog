@@ -1,0 +1,5 @@
+Running v.2
+--------
+- Install zipalign dependence
+- Detect erros and terminate services with exit mode
+- Fix section bypass av 
