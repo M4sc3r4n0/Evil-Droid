@@ -1,4 +1,4 @@
-## Evil-Droid Framework . version 0.1 
+## Evil-Droid Framework . version 0.2 
     Author: Mascerano Bachir [ dev-labs ]
 
 ## Legal Disclamer:
@@ -21,6 +21,7 @@
 	3 - Zenity
 	4 - Aapt
 	5 - Apktool
+	6 - Zipalign
 
 ## Download/Config/Usage:
     1? - Download the tool from github
@@ -37,4 +38,4 @@
       
 
 ## video tutorial: 
-https://www.youtube.com/watch?v=8u-NHeTdPRE&feature=share
+https://www.youtube.com/watch?v=8u-NHeTdPRE&feature=share old version
