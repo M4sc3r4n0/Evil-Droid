@@ -1,5 +1,9 @@
-Running v.2
+Running v.0.3
 --------
 - Install zipalign dependence
 - Detect erros and terminate services with exit mode
-- Fix section bypass av 
+- Fix section bypass av + change icon apk
+- Add new method backdoor + autodetect Smali
+- Fix apktool build packages apk
+- Adding mode running payload in the background 
+
