@@ -55,7 +55,7 @@ checkinternet
 sleep 2
 #Define options
 path=`pwd`
-lanip=`ip route get 1 | awk '{print $NF;exit}'`
+lanip=`hostname -I`
 publicip=`dig +short myip.opendns.com @resolver1.opendns.com`
 ver="v0.3"
 APKTOOL="$path/tools/apktool.jar"
