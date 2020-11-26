@@ -34,26 +34,6 @@ Reset="${Escape}[0m";
 # Check root
 [[ `id -u` -eq 0 ]] > /dev/null 2>&1 || { echo  $red "You must be root to run the script"; echo ; exit 1; }
 clear
-# check internet 
-function checkinternet() 
-{
-  ping -c 1 google.com > /dev/null 2>&1
-  if [[ "$?" != 0 ]]
-  then
-    echo -e $yellow " Checking For Internet: ${RedF}FAILED"
-    echo
-    echo -e $red "This Script Needs An Active Internet Connection"
-    echo
-    echo -e $yellow " Evil-Droid Exit"
-    echo && sleep 2
-    exit
-  else
-    echo -e $yellow " Checking For Internet: ${LighGreenF}CONNECTED"
-  fi
-}
-checkinternet
-sleep 2
-#Define options
 path=`pwd`
 lanip=`hostname -I`
 publicip=`dig +short myip.opendns.com @resolver1.opendns.com`
