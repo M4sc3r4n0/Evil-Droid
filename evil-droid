@@ -37,17 +37,9 @@ clear
 # check internet 
 function checkinternet() 
 {
-  ping -c 1 google.com > /dev/null 2>&1
-  if [[ "$?" != 0 ]]
+  ping -c 1 chrome.com > /dev/null 2>&1
+  if [[ "$?" != 1 ]]
   then
-    echo -e $yellow " Checking For Internet: ${RedF}FAILED"
-    echo
-    echo -e $red "This Script Needs An Active Internet Connection"
-    echo
-    echo -e $yellow " Evil-Droid Exit"
-    echo && sleep 2
-    exit
-  else
     echo -e $yellow " Checking For Internet: ${LighGreenF}CONNECTED"
   fi
 }
